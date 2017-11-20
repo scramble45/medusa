@@ -1,17 +1,151 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>Electron boilerplate</title>
-		<link rel="stylesheet" href="index.css">
-	</head>
-	<body>
-		<div class="container">
-			<header>
-				<h1>Electron boilerplate</h1>
-			</header>
-			<section class="main"></section>
-			<footer></footer>
+
+<head>
+	<meta charset="utf-8">
+	<title>Medusa</title>
+	<link rel="stylesheet" href="index.css">
+	<script>
+		// load jquery
+		window.$ = window.jQuery = require('jquery');
+
+		(function () {
+			const {remote} = require('electron')
+			/**
+			 * Context Menu Render
+			 */
+			const {Menu, MenuItem} = remote
+
+			const menu = new Menu()
+			menu.append(new MenuItem({label: 'Go Back', click() { console.log('Go Back clicked') }}))
+			menu.append(new MenuItem({type: 'separator'}))
+			menu.append(new MenuItem({label: 'Go Forward', click() { console.log('Go Forward clicked') }}))
+
+			window.addEventListener('contextmenu', (e) => {
+				e.preventDefault()
+				menu.popup(remote.getCurrentWindow())
+			}, false)
+
+			/**
+			 * Menu Buttons
+			 */
+			function init() {
+			document.getElementById("min-btn").addEventListener("click", function (e) {
+				const window = remote.getCurrentWindow();
+				window.minimize();
+			});
+
+			document.getElementById("max-btn").addEventListener("click", function (e) {
+				const window = remote.getCurrentWindow();
+				if (!window.isMaximized()) {
+				window.maximize();
+				} else {
+				window.unmaximize();
+				}
+			});
+
+			document.getElementById("close-btn").addEventListener("click", function (e) {
+				const window = remote.getCurrentWindow();
+				window.close();
+			});
+			};
+
+			document.onreadystatechange = function () {
+			if (document.readyState == "complete") {
+				init();
+			}
+			};
+		})();
+
+
+		// Testing Isotope
+		// This is broken
+		var Isotope = require('isotope-layout');
+		require('isotope-packery');
+
+		new Isotope('.grid', {
+			layoutMode: 'packery'
+		});
+
+
+		// Web Requests
+		var catalog = {};
+		require('electron').ipcRenderer.on('ping', function (event, message) {
+			console.log(message);
+		});
+		var request = require('request');
+		//var shuffle = require('shufflejs');
+		request('https://a.4cdn.org/g/catalog.json', function (error, response, body) {
+			if (!error) {
+				//console.log('body:', body);
+				// console.log('statusCode:', response && response.statusCode);
+				if (body) {
+					catalog = body;
+					catalog = JSON.parse(catalog);
+					//console.log(catalog[0].page);
+
+					for (var i = 0; i < catalog.length; i++) {
+						//console.log(catalog[i].threads);
+						//console.log(catalog[i].threads);
+
+						for (var j = 1; j < catalog[i].threads.length; j++) {
+							//console.log('ImgExt', catalog[i].threads[j].ext);
+							//console.log(catalog[i].threads[j].tim);
+							if (catalog[i].threads[j].tim !== undefined) {
+								console.log('ImgExt', catalog[i].threads[j].ext);
+								let imgSrcThumb = `https://i.4cdn.org/g/${catalog[i].threads[j].tim}s.jpg`;
+								let imgSrc = `https://i.4cdn.org/g/${catalog[i].threads[j].tim}${catalog[i].threads[j].ext}`;
+								//document.getElementById('threads')
+								var par = document.getElementById('threads');
+								var atag = document.createElement('a');
+								$( "a" ).addClass( "grid-item" );
+								var img = document.createElement('img');
+								img.src = imgSrcThumb;
+								atag.href = imgSrc;
+								par.appendChild(atag).appendChild(img);
+							}
+						}
+
+					}
+
+					if (catalog.page) {
+						// for (var page in catalog) {
+						// 	if(catalog.hasOwnProperty('page')) {
+						// 		console.log(page + "->" + catalog[page]);
+						// 	}
+						// }
+
+					}
+					//document.getElementById('catalogbody').innerHTML = catalog;
+				} else {
+					document.getElementById('catalogbody').innerHTML = 'no body lol';
+				};
+			} else {
+				console.error(error);
+			}
+		});
+	</script>
+</head>
+
+<body>
+	<div id="title-bar">
+		<div id="title">Medusa</div>
+		<div id="title-bar-btns">
+			<span>v.0.0.1 </span>
+			<button id="min-btn">-</button>
+			<button id="max-btn">+</button>
+			<button id="close-btn">x</button>
 		</div>
-	</body>
+	</div>
+
+	<div class="container">
+		<section class="main"></section>
+		<!-- <div id="elem" name="elem">Test</div> -->
+		<!-- <textarea name="whatever" id="catalogbody" cols="30" rows="10"></textarea> -->
+		<!-- <div id="threads" class="grid" data-masonry='{ "itemSelector": ".grid-item", "columnWidth": 200 }'></div> -->
+		<div id="threads"></div>
+		<footer></footer>
+	</div>
+</body>
+
 </html>
