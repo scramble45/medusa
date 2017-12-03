@@ -5,21 +5,22 @@
 	<meta charset="utf-8">
 	<title>Medusa</title>
 	<link rel="stylesheet" href="index.css">
+	<link href="node_modules/lightbox2/src/css/lightbox.css" rel="stylesheet">
 	<script>
 		// load jquery
 		window.$ = window.jQuery = require('jquery');
 
 		(function () {
-			const {remote} = require('electron')
+			const { remote } = require('electron')
 			/**
 			 * Context Menu Render
 			 */
-			const {Menu, MenuItem} = remote
+			const { Menu, MenuItem } = remote
 
 			const menu = new Menu()
-			menu.append(new MenuItem({label: 'Go Back', click() { console.log('Go Back clicked') }}))
-			menu.append(new MenuItem({type: 'separator'}))
-			menu.append(new MenuItem({label: 'Go Forward', click() { console.log('Go Forward clicked') }}))
+			menu.append(new MenuItem({ label: 'Go Back', click() { console.log('Go Back clicked') } }))
+			menu.append(new MenuItem({ type: 'separator' }))
+			menu.append(new MenuItem({ label: 'Go Forward', click() { console.log('Go Forward clicked') } }))
 
 			window.addEventListener('contextmenu', (e) => {
 				e.preventDefault()
@@ -30,32 +31,35 @@
 			 * Menu Buttons
 			 */
 			function init() {
-			document.getElementById("min-btn").addEventListener("click", function (e) {
-				const window = remote.getCurrentWindow();
-				window.minimize();
-			});
+				document.getElementById("min-btn").addEventListener("click", function (e) {
+					const window = remote.getCurrentWindow();
+					window.minimize();
+				});
 
-			document.getElementById("max-btn").addEventListener("click", function (e) {
-				const window = remote.getCurrentWindow();
-				if (!window.isMaximized()) {
-				window.maximize();
-				} else {
-				window.unmaximize();
-				}
-			});
+				document.getElementById("max-btn").addEventListener("click", function (e) {
+					const window = remote.getCurrentWindow();
+					if (!window.isMaximized()) {
+						window.maximize();
+					} else {
+						window.unmaximize();
+					}
+				});
 
-			document.getElementById("close-btn").addEventListener("click", function (e) {
-				const window = remote.getCurrentWindow();
-				window.close();
-			});
+				document.getElementById("close-btn").addEventListener("click", function (e) {
+					const window = remote.getCurrentWindow();
+					window.close();
+				});
 			};
 
 			document.onreadystatechange = function () {
-			if (document.readyState == "complete") {
-				init();
-			}
+				if (document.readyState == "complete") {
+					init();
+				}
 			};
 		})();
+
+
+
 
 
 		// Testing Isotope
@@ -63,11 +67,15 @@
 		var Isotope = require('isotope-layout');
 		require('isotope-packery');
 
-		new Isotope('.grid', {
-			layoutMode: 'packery'
-		});
 
 
+
+		// new Isotope('.grid', {
+		// 	layoutMode: 'packery',
+		// 	"masonry": { "columnWidth": 110 }
+		// });
+
+		
 		// Web Requests
 		var catalog = {};
 		require('electron').ipcRenderer.on('ping', function (event, message) {
@@ -75,55 +83,7 @@
 		});
 		var request = require('request');
 		//var shuffle = require('shufflejs');
-		request('https://a.4cdn.org/g/catalog.json', function (error, response, body) {
-			if (!error) {
-				//console.log('body:', body);
-				// console.log('statusCode:', response && response.statusCode);
-				if (body) {
-					catalog = body;
-					catalog = JSON.parse(catalog);
-					//console.log(catalog[0].page);
 
-					for (var i = 0; i < catalog.length; i++) {
-						//console.log(catalog[i].threads);
-						//console.log(catalog[i].threads);
-
-						for (var j = 1; j < catalog[i].threads.length; j++) {
-							//console.log('ImgExt', catalog[i].threads[j].ext);
-							//console.log(catalog[i].threads[j].tim);
-							if (catalog[i].threads[j].tim !== undefined) {
-								console.log('ImgExt', catalog[i].threads[j].ext);
-								let imgSrcThumb = `https://i.4cdn.org/g/${catalog[i].threads[j].tim}s.jpg`;
-								let imgSrc = `https://i.4cdn.org/g/${catalog[i].threads[j].tim}${catalog[i].threads[j].ext}`;
-								//document.getElementById('threads')
-								var par = document.getElementById('threads');
-								var atag = document.createElement('a');
-								$( "a" ).addClass( "grid-item" );
-								var img = document.createElement('img');
-								img.src = imgSrcThumb;
-								atag.href = imgSrc;
-								par.appendChild(atag).appendChild(img);
-							}
-						}
-
-					}
-
-					if (catalog.page) {
-						// for (var page in catalog) {
-						// 	if(catalog.hasOwnProperty('page')) {
-						// 		console.log(page + "->" + catalog[page]);
-						// 	}
-						// }
-
-					}
-					//document.getElementById('catalogbody').innerHTML = catalog;
-				} else {
-					document.getElementById('catalogbody').innerHTML = 'no body lol';
-				};
-			} else {
-				console.error(error);
-			}
-		});
 	</script>
 </head>
 
@@ -138,14 +98,105 @@
 		</div>
 	</div>
 
+	<div id="boardHeader" class="home">
+		<input id="myTextBox" name="myTextBox" type="text" value="/">
+	</div>
 	<div class="container">
 		<section class="main"></section>
 		<!-- <div id="elem" name="elem">Test</div> -->
 		<!-- <textarea name="whatever" id="catalogbody" cols="30" rows="10"></textarea> -->
-		<!-- <div id="threads" class="grid" data-masonry='{ "itemSelector": ".grid-item", "columnWidth": 200 }'></div> -->
-		<div id="threads"></div>
+		<div id="threads" class="grid"></div>
 		<footer></footer>
 	</div>
+	<script>
+		startup("/g/");
+		var elem = document.querySelector('.grid');
+		var iso = new Isotope(elem, {
+			itemSelector: '.grid-item',
+			percentPosition: true,
+			masonry: {
+				columnWidth: 'grid-sizer'
+			}
+		});
+
+		function startup(boardPicked) {
+			if (boardPicked !== null || boardPicked !== undefined){
+				boardURL = boardPicked;
+			}
+			$("#threads").empty();
+			request(`https://a.4cdn.org${boardURL}catalog.json`, function (error, response, body) {
+				if (!error) {
+					//console.log('body:', body);
+					// console.log('statusCode:', response && response.statusCode);
+					if (body) {
+						catalog = body;
+						catalog = JSON.parse(catalog);
+						var newDiv = document.createElement('div');
+						newDiv.className = 'grid-sizer';
+						document.getElementById('threads').appendChild(newDiv);
+						//console.log(catalog[0].page);
+
+						for (var i = 0; i < catalog.length; i++) {
+							//console.log(catalog[i].threads);
+							//console.log(catalog[i].threads);
+
+							for (var j = 1; j < catalog[i].threads.length; j++) {
+								//console.log('ImgExt', catalog[i].threads[j].ext);
+								//console.log(catalog[i].threads[j].tim);
+								if (catalog[i].threads[j].tim !== undefined) {
+									console.log('ImgExt', catalog[i].threads[j].ext);
+									let imgSrcThumb = `https://i.4cdn.org${boardURL}${catalog[i].threads[j].tim}s.jpg`;
+									let imgSrc = `https://i.4cdn.org${boardURL}${catalog[i].threads[j].tim}${catalog[i].threads[j].ext}`;
+									//document.getElementById('threads')
+
+									var newDivImg = document.createElement('div');
+
+									newDivImg.className = 'grid-item';
+
+
+									var par = document.getElementById('threads');
+									var atag = document.createElement('a');
+									var img = document.createElement('img');
+									img.src = imgSrcThumb;
+									atag.href = imgSrc;
+									atag.setAttribute("data-lightbox", "images");
+									newDivImg.appendChild(atag).appendChild(img);
+									par.appendChild(newDivImg);
+								}
+							}
+
+						}
+
+						if (catalog.page) {
+							// for (var page in catalog) {
+							// 	if(catalog.hasOwnProperty('page')) {
+							// 		console.log(page + "->" + catalog[page]);
+							// 	}
+							// }
+
+						}
+						//document.getElementById('catalogbody').innerHTML = catalog;
+					} else {
+						document.getElementById('catalogbody').innerHTML = 'no body lol';
+					};
+				} else {
+					console.error(error);
+				}
+			});
+		};
+
+		$('input[type=text]').on('keydown', function (e) {
+			if (e.which == 13) {
+				var someValue = $('#myTextBox').val();
+				console.log(someValue);
+				startup(someValue);
+				e.preventDefault();
+			}
+		});
+
+	</script>
+	<script src="node_modules/lightbox2/src/js/lightbox.js"></script>
+
 </body>
 
 </html>

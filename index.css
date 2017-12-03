@@ -53,23 +53,30 @@ a {
 	color: #68217A;
 }
 
+img {
+	vertical-align: top;
+}
+
 body {
 	font-family: -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
 	padding: 0px;
 	margin: 0px;
 	background-color: #2D2D30;
-	border: 1px solid rgb(122, 33, 97);
-	position: absolute;
+	/*border: 1px solid rgb(122, 33, 97);*/
 	top: 0px;
 	left: 0px;
 	right: 0px;
 	bottom: 0px;
+	overflow: auto;
 }
 
 .container {
 	padding-top: 32px;
 	max-height: 100%;
-    overflow: auto;
+}
+
+#boardHeader {
+	padding-top: 32px;
 }
 
 ::-webkit-scrollbar {
@@ -81,6 +88,17 @@ body {
 	color: #CCCCCC;
 }
 
+.grid-item,
+.grid-sizer {
+  width: auto;
+}
+
+.grid-item {
+  float: left;
+  height: auto;
+  border: 2px solid #333;
+  border-color: hsla(0, 0%, 0%, 0.7);
+}
 
 
 /* Isotope */

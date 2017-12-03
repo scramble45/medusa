@@ -1,3 +1,9 @@
+/*
+
+https://jsfiddle.net/xlaptop2001/68nLknav/
+
+*/
+
 'use strict';
 const electron = require('electron')
 	, request = require('request')
@@ -35,7 +41,7 @@ function createMainWindow() {
 		}
 	});
 
-	win.loadURL(`file://${__dirname}/index.html`);
+	win.loadURL(`file://${__dirname}/content.html`);
 
 	win.webContents.on('did-finish-load', function () {
 		//win.webContents.send('ping', body);
